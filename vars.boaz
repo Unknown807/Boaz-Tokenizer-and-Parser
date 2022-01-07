@@ -1,0 +1,5 @@
+program example
+int num, sum;
+char ch;
+begin
+end
