@@ -1,9 +1,13 @@
 import os
 import sys
+from typing import BinaryIO
 
-# LETTERS = "abcdefghijklmnopqrstuvwxyz"
-# LETTERS += LETTERS.upper()
-# DIGITS = "0123456789"
+#------------------------------------------------------------------------
+
+ARITHMETIC_OP = ("+", "-", "*", "/")
+BOOLEAN_OP = ("&", "|")
+RELATIONAL_OP = ("=", "!=", "<", ">", "<=", ">=")
+UNARY_OP = ("-", "!")
 
 #------------------------------------------------------------------------
 
@@ -20,12 +24,8 @@ class Tokenizer:
     TOKENS = []
 
     LITERALS = (
-        ":=", "!=", "<=", ">=",
-        ",", ";", "+", "-",
-        "*", "/", "&", "|",
-        "=", "<", ">", "!",
-        "(", ")"
-    )
+        ":=", ",", ";", ")", "("
+    ) + ARITHMETIC_OP + BOOLEAN_OP + RELATIONAL_OP + UNARY_OP
 
     KEYWORDS = (
         "begin", "char", "do", "else",
@@ -82,6 +82,9 @@ class Tokenizer:
             # check if character is a digit
             elif ( char.isdigit() ):
                 token_str, i = cls.gather_chars(i, char, end)
+                if (not token_str.isdigit()):
+                    raise TokenizeException
+
                 cls.TOKENS.append( ("INT_CONST", token_str) )
 
             # check if character is a single character enclosed with "
@@ -90,6 +93,8 @@ class Tokenizer:
                     token_str = char+cls.CODE[i+1]+cls.CODE[i+2]
                     cls.TOKENS.append( ("CHAR_CONST", token_str))
                     i+=2
+                else:
+                    raise TokenizeException
 
             # the rest are symbols, 1 or 2 character literals
             else:
@@ -140,27 +145,16 @@ class Parser:
             raise ParserException
 
         cls.parse_var_decs()
-
-        _, token = Tokenizer.get_next_token()
-        if (token != "end"):
-            Tokenizer.backtrack()
-            cls.parse_statements()
-            _, token = Tokenizer.get_next_token()
-            if (token != "end"):
-                raise ParserException
+        cls.parse_statements()
 
     @classmethod
     def parse_var_decs(cls):
-        cls.parse_var_dec()
-
-    @classmethod
-    def parse_var_dec(cls):
         _, token = Tokenizer.get_next_token()
         if (token == "begin"):
             return
         elif (token in ("int", "char")):
             cls.parse_var_list(token)
-            cls.parse_var_dec()
+            cls.parse_var_decs()
         else:
             raise ParserException
     
@@ -192,8 +186,83 @@ class Parser:
 
     @classmethod
     def parse_statements(cls):
+        '''
+        Only possible statements are:
+        - assign statement
+        - if statement
+        - print statement
+        - while statement
+        '''
+
+        _, token = Tokenizer.get_next_token()
+        
+        if (token == "end"):
+            return
+        elif (token == "while"):
+            pass
+        elif (token == "if"):
+            pass
+        elif (token == "print"):
+            pass
+        elif (cls.is_valid_identifier(token)):
+            # assignment statement starts with a valid identifier
+            # otherwise it is incorrect
+            cls.parse_assign()
+        else:
+            raise ParserException
+        
+        cls.parse_statements()
+
+    @classmethod
+    def parse_assign(cls):
+        _, token = Tokenizer.get_next_token()
+        
+        if (token == ":="):
+            cls.parse_expression()
+        else:
+            raise ParserException
+
+    @classmethod
+    def parse_if(cls):
         pass
 
+    @classmethod
+    def parse_while(cls):
+        pass
+
+    @classmethod
+    def parse_print(cls):
+        pass
+
+    @classmethod
+    def parse_expression(cls):
+        cls.parse_term()
+        
+        _, token = Tokenizer.get_next_token()
+        if (token in (";", "THEN", "DO", ")")):
+            return
+        
+        _, token = Tokenizer.get_next_token()
+        if (token in ARITHMETIC_OP+BOOLEAN_OP+RELATIONAL_OP):
+            cls.parse_term()
+        else:
+            raise ParserException
+
+    @classmethod
+    def parse_term(cls):
+        _type, token = Tokenizer.get_next_token()
+
+        if (_type != "INT_CONST" and _type != "CHAR_CONST"):
+            if (token == "("):
+                cls.parse_expression()
+            elif (token in UNARY_OP):
+                # could add backtracking to avoid deep parse_term recursion
+                cls.parse_term()
+            elif (cls.is_valid_identifier(token)):
+                # could add stuff here for symbol table later
+                pass
+            else:
+                raise ParserException
 
 #------------------------------------------------------------------------
 
@@ -228,8 +297,10 @@ except TokenizeException:
 
 
 # syntax analysis, check tokens against grammar of Boaz language
-try:
-    Parser.parse()
-except ParserException:
-    print("error")
-    sys.exit()
+# try:
+#     Parser.parse()
+# except ParserException:
+#     print("error")
+#     sys.exit()
+
+Parser.parse()
