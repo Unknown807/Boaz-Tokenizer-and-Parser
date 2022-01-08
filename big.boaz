@@ -1,0 +1,26 @@
+program example
+int num, sum;
+char ch;
+begin
+    sum := 0;
+    num := 1;
+    ch := "a";
+    while ch < "z"
+    do
+        while ch < "b"
+        do
+            if num / 3 != 0 & ch != "y"
+            then
+                if sum = 0 then print sum; else print ch; fi;
+                sum := sum + num * 2;
+                ch := ch + 1;
+            else
+                sum := sum - num;
+                ch := "m";
+            fi;
+            num := num + 1;
+        od;
+    od;
+    print sum;
+    print ch;
+end

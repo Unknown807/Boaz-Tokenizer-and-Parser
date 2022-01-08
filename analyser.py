@@ -1,6 +1,5 @@
 import os
 import sys
-from typing import BinaryIO
 
 #------------------------------------------------------------------------
 
@@ -11,17 +10,15 @@ UNARY_OP = ("-", "!")
 
 #------------------------------------------------------------------------
 
-class ParserException(Exception):
-    pass
-
-class TokenizeException(Exception):
-    pass
+class ParserException(Exception): pass
+class TokenizeException(Exception): pass
 
 #------------------------------------------------------------------------
 
 class Tokenizer:
     CODE = None
     TOKENS = []
+    CURRENT_TOKEN = 0
 
     LITERALS = (
         ":=", ",", ";", ")", "("
@@ -32,8 +29,6 @@ class Tokenizer:
         "end", "fi", "if", "int", "od",
         "print", "program", "then", "while"
     )
-
-    CURRENT_TOKEN = 0
 
     @classmethod
     def is_literal(cls, line):
@@ -117,10 +112,6 @@ class Tokenizer:
         token = cls.TOKENS[cls.CURRENT_TOKEN]
         cls.CURRENT_TOKEN += 1
         return token
-
-    @classmethod
-    def backtrack(cls):
-        cls.CURRENT_TOKEN -= 1
 
 #------------------------------------------------------------------------
 
