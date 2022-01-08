@@ -120,7 +120,15 @@ class Parser:
     SYMBOL_TABLE = {}
 
     @classmethod
+    def is_identifier_declared(cls, token):
+        return token in cls.SYMBOL_TABLE.keys()
+
+    @classmethod
     def is_valid_identifier(cls, token):
+        '''
+        starts with a letter and is alphanumeric + any
+        underscores
+        '''
         if ( token[0].isalpha() ):
             if (token.replace("_", "").isalnum()):
                 return True
@@ -198,7 +206,7 @@ class Parser:
             cls.parse_if()
         elif (token == "print"):
             cls.parse_expression()
-        elif (cls.is_valid_identifier(token)):
+        elif (cls.is_valid_identifier(token) and cls.is_identifier_declared(token)):
             # assignment statement starts with a valid identifier
             # otherwise it is incorrect
             cls.parse_assign()
@@ -253,12 +261,9 @@ class Parser:
             if (token == "("):
                 cls.parse_expression()
             elif (token in UNARY_OP):
-                # could add backtracking to avoid deep parse_term recursion
                 cls.parse_term()
-            elif (cls.is_valid_identifier(token)):
-                # could add stuff here for symbol table later
-                pass
-            else:
+            # everything will fail unless its a valid and declared identifier
+            elif (not cls.is_valid_identifier(token) or not cls.is_identifier_declared(token)):
                 raise ParserException
 
 #------------------------------------------------------------------------
