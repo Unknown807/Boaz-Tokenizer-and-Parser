@@ -12,7 +12,8 @@ begin
             if num / 3 != 0 & ch != "y"
             then
                 if sum = 0 then print sum; else print ch; fi;
-                sum := sum + num * 2;
+                sum := sum+num*2;
+                sum:=(2+3)-sum/2*5;
                 ch := ch + 1;
             else
                 sum := sum - num;
