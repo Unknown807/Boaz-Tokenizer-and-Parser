@@ -189,7 +189,7 @@ class Parser:
         '''
         Only possible statements are:
         - assign statement
-        - if statement
+        - if statement (+ else clause)
         - print statement
         - while statement
         '''
@@ -198,10 +198,13 @@ class Parser:
 
         if (token in ("end", "od", "fi")):
             return
+        elif (token == "else"):
+            cls.parse_statements()
+            return
         elif (token == "while"):
             cls.parse_while()
         elif (token == "if"):
-            pass
+            cls.parse_if()
         elif (token == "print"):
             cls.parse_expression()
         elif (cls.is_valid_identifier(token)):
@@ -214,6 +217,15 @@ class Parser:
         cls.parse_statements()
 
     @classmethod
+    def parse_if(cls):
+        cls.parse_expression()
+        cls.parse_statements()
+
+        _, token = Tokenizer.get_next_token()
+        if (token != ";"):
+            raise ParserException
+
+    @classmethod
     def parse_assign(cls):
         _, token = Tokenizer.get_next_token()
         
@@ -221,10 +233,6 @@ class Parser:
             cls.parse_expression()
         else:
             raise ParserException
-
-    @classmethod
-    def parse_if(cls):
-        pass
 
     @classmethod
     def parse_while(cls):
