@@ -7,7 +7,7 @@ begin
     ch := "a";
     while ch < "z"
     do
-        while ch < "b"
+        while ch & "b"
         do
             if num / 3 != 0 & ch != "y"
             then

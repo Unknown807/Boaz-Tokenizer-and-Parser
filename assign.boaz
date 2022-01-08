@@ -9,4 +9,5 @@ begin
     ch := ch + 1;
     sum := sum ------ num;
     ch := "m";
+    if num/3!=0&ch!="y"then ch:=ch+1;fi;
 end

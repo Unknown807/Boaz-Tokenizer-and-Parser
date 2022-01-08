@@ -17,7 +17,14 @@ class ParserException(Exception):
     
     def __str__(self):
         return "Something wrong with the last token or its type - TYPE:{}, TOKEN:{}".format(self.type, self.token)
-        
+    
+class ParserSemanticException(Exception):
+    def __init__(self, message):
+        self.message = message
+    
+    def __str__(self):
+        return self.message
+
 class TokenizeException(Exception):
     def __init__(self, token):
         self.token = token
@@ -127,45 +134,16 @@ class Tokenizer:
 
 #------------------------------------------------------------------------
 
-class ParseTreeNode:
-    def __init__(self, token, level):
-        self.token = token
-        self.depth = level
-        self.current_child = 0
-        self.children = []
-
-    def get_current_child(self):
-        return self.children[self.current_child]
-
-    # def add_node(self, node):
-    #     pass
-
-class ParseTree:
-    def __init__(self, _type):
-        self.intended_type = _type
-        self.root = None
-        self.current_depth = -1
-
-    def add_node(self, token):
-        if self.root == None:
-            self.current_depth+=1
-            self.root = ParseTreeNode(token, self.current_depth)
-        else:
-            current_node = self.root.get_current_child()
-            for i in range(self.current_depth):
-                current_node = current_node.get_current_child()
-            
-
-
-#------------------------------------------------------------------------
-
 class Parser:
     
-    ID_TYPES = {}
+    SYMBOL_TABLE = {}
 
     @classmethod
     def is_identifier_declared(cls, token):
-        return token in cls.ID_TYPES.keys()
+        if token not in cls.SYMBOL_TABLE.keys():
+            raise ParserSemanticException("Identifier: {}, has not been declared".format(token))
+        
+        return True
 
     @classmethod
     def is_valid_identifier(cls, token):
@@ -178,6 +156,19 @@ class Parser:
                 return True
         
         return False
+
+    @classmethod
+    def check_matching_types(cls, intended_type, expression):
+        # it contains any boolean related operators
+        for char in RELATIONAL_OP+BOOLEAN_OP+("!",):
+            if char in expression:
+                return intended_type == "bool"
+        
+        # it contains a character constant or identifier
+        if '"' in expression or "char" in expression:
+            return intended_type == "char"
+
+        return intended_type == "int"
 
     @classmethod
     def parse(cls):
@@ -216,8 +207,7 @@ class Parser:
         if (not cls.is_valid_identifier(token)):
             raise ParserException(_type, token)
 
-        # set the type of the variable for later semantic analysis
-        cls.ID_TYPES[token] = var_type
+        cls.SYMBOL_TABLE[token] = var_type
 
         _type, token = Tokenizer.get_next_token()
         if (token == ";"):
@@ -245,23 +235,25 @@ class Parser:
             cls.parse_statements()
             return
         elif (token == "while"):
-            cls.parse_while(ParseTree("bool"))
+            cls.parse_while()
         elif (token == "if"):
-            cls.parse_if(ParseTree("bool"))
+            cls.parse_if()
         elif (token == "print"):
             cls.parse_expression()
         elif (cls.is_valid_identifier(token) and cls.is_identifier_declared(token)):
             # assignment statement starts with a valid identifier
             # otherwise it is incorrect
-            cls.parse_assign(ParseTree(cls.ID_TYPES[token]))
+            cls.parse_assign(cls.SYMBOL_TABLE[token])
         else:
             raise ParserException(_type, token)
         
         cls.parse_statements()
 
     @classmethod
-    def parse_if(cls, parse_tree):
-        cls.parse_expression(parse_tree)
+    def parse_if(cls):
+        line = cls.parse_expression()
+        if (not cls.check_matching_types("bool", line)):
+            raise ParserSemanticException("If statement condition has to evaluate to a BOOLEAN")
         cls.parse_statements()
 
         _type, token = Tokenizer.get_next_token()
@@ -269,50 +261,60 @@ class Parser:
             raise ParserException(_type, token)
 
     @classmethod
-    def parse_assign(cls, parse_tree):
+    def parse_assign(cls, assignment_type):
         _type, token = Tokenizer.get_next_token()
         
         if (token == ":="):
-            cls.parse_expression(parse_tree)
+            line = cls.parse_expression()
+            if (not cls.check_matching_types(assignment_type, line)):
+                raise ParserSemanticException("Wrong type assignment to identifier of type: {}".format(assignment_type))
         else:
             raise ParserException(_type, token)
 
     @classmethod
-    def parse_while(cls, parse_tree):
-        cls.parse_expression(parse_tree)
+    def parse_while(cls):
+        line = cls.parse_expression()
+        if (not cls.check_matching_types("bool", line)):
+            raise ParserSemanticException("While statement condition has to evaluate to a BOOLEAN")
         cls.parse_statements()
+        
         _type, token = Tokenizer.get_next_token()
         if (token != ";"):
             raise ParserException(_type, token)
 
     @classmethod
-    def parse_expression(cls, parse_tree=None):
-        cls.parse_term(parse_tree)
+    def parse_expression(cls, expression=""):
+        expression+=cls.parse_term()
 
         _type, token = Tokenizer.get_next_token()
 
         if (token in (";", "then", "do", ")")):
-            return
+            return expression
         elif (token in ARITHMETIC_OP+BOOLEAN_OP+RELATIONAL_OP):
-            cls.parse_expression()
+            expression += token
+            expression += cls.parse_expression()
         else:
             raise ParserException(_type, token)
 
-    @classmethod
-    def parse_term(cls, parse_tree=None):
-        _type, token = Tokenizer.get_next_token()
+        return expression
 
-        # if (parse_tree is not None):
-        #     parse_tree.add_node(token)
+    @classmethod
+    def parse_term(cls, expression=""):
+        _type, token = Tokenizer.get_next_token()
 
         if (_type != "INT_CONST" and _type != "CHAR_CONST"):
             if (token == "("):
-                cls.parse_expression()
+                expression+=cls.parse_expression()
             elif (token in UNARY_OP):
-                cls.parse_term()
-            # everything will fail unless its a valid and declared identifier
-            elif (not cls.is_valid_identifier(token) or not cls.is_identifier_declared(token)):
+                expression+=cls.parse_term()
+            elif (cls.is_valid_identifier(token) and cls.is_identifier_declared(token)):
+                expression += cls.SYMBOL_TABLE[token]
+                return expression
+            else:
                 raise ParserException(_type, token)
+
+        expression+=token
+        return expression
 
 #------------------------------------------------------------------------
 
@@ -351,7 +353,7 @@ Tokenizer.tokenize()
 # syntax analysis, check tokens against grammar of Boaz language
 # try:
 #     Parser.parse()
-# except ParserException:
+# except ParserException, ParserSemanticException:
 #     print("error")
 #     sys.exit()
 
