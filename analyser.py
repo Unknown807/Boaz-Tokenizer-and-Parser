@@ -195,15 +195,15 @@ class Parser:
         '''
 
         _, token = Tokenizer.get_next_token()
-        
-        if (token == "end"):
+
+        if (token in ("end", "od", "fi")):
             return
         elif (token == "while"):
-            pass
+            cls.parse_while()
         elif (token == "if"):
             pass
         elif (token == "print"):
-            pass
+            cls.parse_expression()
         elif (cls.is_valid_identifier(token)):
             # assignment statement starts with a valid identifier
             # otherwise it is incorrect
@@ -228,23 +228,21 @@ class Parser:
 
     @classmethod
     def parse_while(cls):
-        pass
-
-    @classmethod
-    def parse_print(cls):
-        pass
+        cls.parse_expression()
+        cls.parse_statements()
+        _, token = Tokenizer.get_next_token()
+        if (token != ";"):
+            raise ParserException
 
     @classmethod
     def parse_expression(cls):
         cls.parse_term()
-        
+
         _, token = Tokenizer.get_next_token()
-        if (token in (";", "THEN", "DO", ")")):
+        if (token in (";", "then", "do", ")")):
             return
-        
-        _, token = Tokenizer.get_next_token()
-        if (token in ARITHMETIC_OP+BOOLEAN_OP+RELATIONAL_OP):
-            cls.parse_term()
+        elif (token in ARITHMETIC_OP+BOOLEAN_OP+RELATIONAL_OP):
+            cls.parse_expression()
         else:
             raise ParserException
 
@@ -289,7 +287,6 @@ try:
 except TokenizeException:
     print("error")
     sys.exit()
-
 
 # print("token done")
 # for x in range(100):

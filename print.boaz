@@ -5,8 +5,5 @@ begin
     sum := 0;
     num := 1;
     ch := "a";
-    sum := sum + num * 2 / 4;
-    ch := ch + 1;
-    sum := sum ------ num;
-    ch := "m";
+    print sum;
 end
