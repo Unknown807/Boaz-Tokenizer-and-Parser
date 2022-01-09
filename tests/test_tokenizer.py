@@ -36,11 +36,6 @@ class TestTokenizer(unittest.TestCase):
         self.read_boaz_file_and_set_tokenizer_code("untokenizable")
         self.assertRaises(TokenizeException, self.tokenizer.tokenize)
 
-    def test_success_tokenizing_empty_file(self):
-        
-        self.read_boaz_file_and_set_tokenizer_code("empty")
-        self.assertEqual(self.tokenizer.TOKENS, [])
-
     def test_sucess_tokenizing_simple_file(self):
         
         self.read_boaz_file_and_set_tokenizer_code("simple")

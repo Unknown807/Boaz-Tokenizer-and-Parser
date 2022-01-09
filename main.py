@@ -20,6 +20,10 @@ if not filename.endswith(".boaz") or not os.path.isfile("./"+filename):
 with open(filename, "r") as f:
     code = f.read()
 
+if (len(code) == 0):
+    print("error")
+    sys.exit()
+
 #------------------------------------------------------------------------
 
 # lexical analysis, generate tokens from source code
@@ -28,11 +32,6 @@ try:
     Tokenizer.tokenize()
 except TokenizeException:
     print("error")
-    sys.exit()
-
-# empty file nothing to parse
-if (len(Tokenizer.TOKENS) == 0):
-    print("ok")
     sys.exit()
 
 # syntax + simple semantic analysis, check tokens against grammar of Boaz language
