@@ -44,7 +44,7 @@ class Parser:
         _type, id_token = Tokenizer.get_next_token()
 
         if (program_token != "program" or _type != "IDENTIFIER" or not cls.is_valid_identifier(id_token)):
-            raise ParserException(_type, program_token+"or "+id_token)
+            raise ParserException(_type, program_token+" or "+id_token)
 
         cls.parse_var_decs()
         cls.parse_statements()
