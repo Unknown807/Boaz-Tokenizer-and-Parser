@@ -131,3 +131,5 @@ dmypy.json
 .vscode/
 backup/
 tests/__pycache__/
+allcases.txt
+boazfiles/test.boaz
