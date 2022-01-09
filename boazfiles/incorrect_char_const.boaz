@@ -1,0 +1,6 @@
+program example
+char ch;
+begin
+    ch := "a";
+    ch := "a;
+end
