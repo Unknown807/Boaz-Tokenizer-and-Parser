@@ -1,5 +1,5 @@
 from constants import *
-from exceptions import TokenizeException
+from exceptions import ParserException, TokenizeException
 
 class Tokenizer:
     CODE = None
@@ -95,6 +95,11 @@ class Tokenizer:
 
     @classmethod
     def get_next_token(cls):
-        token = cls.TOKENS[cls.CURRENT_TOKEN]
+        # index error because eof is reached instead of a keyword
+        try:
+            token = cls.TOKENS[cls.CURRENT_TOKEN]
+        except IndexError:
+            raise ParserException("MISSING", "MISSING")
+
         cls.CURRENT_TOKEN += 1
         return token

@@ -94,7 +94,7 @@ class Parser:
         - print statement
         - while statement
         '''
-
+        
         _type, token = Tokenizer.get_next_token()
 
         if (token in ("end", "od", "fi")):

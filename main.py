@@ -34,7 +34,7 @@ except TokenizeException:
     print("error")
     sys.exit()
 
-print(Tokenizer.TOKEN)
+print(Tokenizer.TOKENS)
 
 # syntax + simple semantic analysis, check tokens against grammar of Boaz language
 try:

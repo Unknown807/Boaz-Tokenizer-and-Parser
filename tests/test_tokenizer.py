@@ -22,28 +22,23 @@ class TestTokenizer(unittest.TestCase):
         self.tokenizer.CURRENT_TOKEN = 0
 
     def test_error_when_incorrect_int_const(self):
-
         self.read_boaz_file_and_set_tokenizer_code("incorrect_int_const")
         self.assertRaises(TokenizeException, self.tokenizer.tokenize)
 
     def test_error_when_incorrect_char_const(self):
-
         self.read_boaz_file_and_set_tokenizer_code("incorrect_char_const")
         self.assertRaises(TokenizeException, self.tokenizer.tokenize)
 
     def test_error_when_untokenizable_char(self):
-
         self.read_boaz_file_and_set_tokenizer_code("untokenizable")
         self.assertRaises(TokenizeException, self.tokenizer.tokenize)
 
     def test_sucess_tokenizing_simple_file(self):
-        
         self.read_boaz_file_and_set_tokenizer_code("simple")
         self.tokenizer.tokenize()
         self.assertEqual(len(self.tokenizer.TOKENS), 4)
 
     def test_success_tokenizing_all_legal_syntax(self):
-
         self.read_boaz_file_and_set_tokenizer_code("all_legal_syntax")
         self.tokenizer.tokenize()
         self.assertGreaterEqual(len(self.tokenizer.TOKENS), 1)
